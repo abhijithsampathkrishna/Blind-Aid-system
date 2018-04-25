@@ -59,7 +59,7 @@ public class ConfigActivity extends AppCompatActivity {
                     pb.setIndeterminate(true);
 
                     if(!ssid.getText().toString().isEmpty() && !password.getText().toString().isEmpty()) {
-                        JSONObject jsonobj = getjson(ssid.getText().toString(), password.getText().toString());
+                        JSONObject jsonobj = getjson(ssid.getText().toString(), password.getText().toString(),devId);
                         JsonObjectRequest jsonObjRequest = new JsonObjectRequest
                                 (Request.Method.POST, puturl, jsonobj, new Response.Listener<JSONObject>() {
                                     @Override
@@ -102,11 +102,11 @@ public class ConfigActivity extends AppCompatActivity {
 
     }
 
-    public JSONObject getjson(String ssid, String password){
+    public JSONObject getjson(String ssid, String password,String devId){
         Map<String, String> params = new HashMap<String, String>();
         params.put("ssid", ssid);
         params.put("password",password);
-        params.put("devId",devId);
+        params.put("devID",devId);
 
         JSONObject jsonObj = new JSONObject(params);
 
