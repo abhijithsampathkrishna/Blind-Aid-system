@@ -1,8 +1,11 @@
 package com.example.aj.helpinghand;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,11 +28,14 @@ import java.util.Map;
 
 public class DashboardActivity extends AppCompatActivity {
 
+    ArrayAdapter adapter;
+
     String email=null;
     String geturl ="http://ec2-18-188-137-2.us-east-2.compute.amazonaws.com/user/getdev";
     String puturl ="http://ec2-18-188-137-2.us-east-2.compute.amazonaws.com/user/adddev";
     String linkurl = "http://ec2-18-188-137-2.us-east-2.compute.amazonaws.com/link/add";
-
+    String _geturl = "http://ec2-18-188-137-2.us-east-2.compute.amazonaws.com/location/getloc";
+    String uri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +54,50 @@ public class DashboardActivity extends AppCompatActivity {
 
 //        Toast.makeText(this, email, Toast.LENGTH_SHORT).show();
         ListHandler(bar,listv);
+
+        listv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String dev = adapter.getItem(i).toString();
+                Toast.makeText(DashboardActivity.this, "Fetching Latest Location of "+dev , Toast.LENGTH_SHORT).show();
+                bar.setVisibility(View.VISIBLE);
+                JSONObject jsonObj = getjson(email,dev);
+
+
+                JsonObjectRequest jsonObjRequest = new JsonObjectRequest
+                        (Request.Method.POST, _geturl, jsonObj, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+//                        Toast.makeText(context, response.toString(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(DashboardActivity.this, "Fetching Location..", Toast.LENGTH_SHORT).show();
+                                try {
+                                    String lat = response.getString("lat");
+                                    String lng = response.getString("lng");
+                                    uri = "http://maps.google.com?q="+lat+","+lng;
+
+                                } catch (JSONException err){
+                                    Toast.makeText(DashboardActivity.this, "Device was not found", Toast.LENGTH_SHORT).show();
+                                    bar.setVisibility(View.INVISIBLE);
+
+                                }
+                                Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(uri));
+                                intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+                                startActivity(intent);
+                                bar.setVisibility(View.INVISIBLE);
+
+                            }
+                        },
+                                new Response.ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(VolleyError error) {
+                                        Toast.makeText(DashboardActivity.this, error.toString(), Toast.LENGTH_SHORT).show();
+                                        bar.setVisibility(View.INVISIBLE);
+                                    }
+                                });
+                VolleyHandler.getInstance(DashboardActivity.this).getRequestQueue().add(jsonObjRequest);
+
+            }
+        });
 
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,7 +159,7 @@ public class DashboardActivity extends AppCompatActivity {
                                 } else {
                                     String[] list = {"No Devices found","Try Adding a device"};
                                 }
-                                ArrayAdapter adapter = new ArrayAdapter<String>(DashboardActivity.this,R.layout.list_view,R.id.label ,list);
+                                adapter = new ArrayAdapter<String>(DashboardActivity.this,R.layout.list_view,R.id.label ,list);
                                 bar.setVisibility(View.INVISIBLE);
                                 listv.setAdapter(adapter);
 
