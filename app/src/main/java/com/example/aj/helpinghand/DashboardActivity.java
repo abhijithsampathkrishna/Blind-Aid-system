@@ -113,10 +113,12 @@ public class DashboardActivity extends AppCompatActivity {
                 String device = id.getText().toString();
                 if(!(device.length()>0)){
                     Toast.makeText(DashboardActivity.this, "Please Enter Device ID", Toast.LENGTH_SHORT).show();
+                    bar.setVisibility(View.INVISIBLE);
                 }
                 else {
                     VolleyHandler.Post(puturl,DashboardActivity.this,getjson(email,device),null,bar);
                     VolleyHandler.Post(linkurl,DashboardActivity.this,getjson(email,device),null,bar);
+
 
 
                 }
